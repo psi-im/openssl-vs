@@ -1,0 +1,34 @@
+default	rel
+%define XMMWORD
+%define YMMWORD
+%define ZMMWORD
+section	.text code align=64
+
+
+global	ecp_nistz256_avx2_transpose_convert
+global	ecp_nistz256_avx2_convert_transpose_back
+global	ecp_nistz256_avx2_point_add_affine_x4
+global	ecp_nistz256_avx2_point_add_affines_x4
+global	ecp_nistz256_avx2_to_mont
+global	ecp_nistz256_avx2_from_mont
+global	ecp_nistz256_avx2_set1
+global	ecp_nistz256_avx2_multi_gather_w7
+
+ecp_nistz256_avx2_transpose_convert:
+ecp_nistz256_avx2_convert_transpose_back:
+ecp_nistz256_avx2_point_add_affine_x4:
+ecp_nistz256_avx2_point_add_affines_x4:
+ecp_nistz256_avx2_to_mont:
+ecp_nistz256_avx2_from_mont:
+ecp_nistz256_avx2_set1:
+ecp_nistz256_avx2_multi_gather_w7:
+DB	0x0f,0x0b
+	DB	0F3h,0C3h		;repret
+
+
+global	ecp_nistz_avx2_eligible
+
+ecp_nistz_avx2_eligible:
+	xor	eax,eax
+	DB	0F3h,0C3h		;repret
+

@@ -1,0 +1,5 @@
+./*.asm
+*VC.opendb
+*VC.db
+.vs
+obj
