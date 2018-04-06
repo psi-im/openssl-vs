@@ -2,11 +2,14 @@
 function Gen-Asm ($fpath, $destPath) {
    If (($fpath -match "86" -or $fpath -match "avx" -or $fpath -match "mmx") -And (($fpath -match "asm" -And (-not ($fpath -match "perlasm"))) -or ($fpath -match "cpuid"))) {
      if ((-Not (Test-Path -Path $destPath)) -Or ((Get-ChildItem $destPath).ModificationTime -lt (Get-ChildItem $fpath).ModificationTime)) {
-	   $nasmCmd = "nasm"
-	   if ($fpath -match "586" -or $fpath -match "x86-" -or $fpath -match "x86\." -or $fpath -match "mmx" -or $fpath -match "x86cpu") { $nasmCmd="win32n" }
-       $unixpath = $fpath -replace "\\", "/";
 	   Write-Output "Try to generate $destPath by $fpath";
-	   ./perl.cmd "$unixpath" "$nasmCmd" $destPath;
+	   $unixpath = $fpath -replace "\\", "/";
+	   $env:FLAGC = ""
+	   if ($fpath -match "586" -or $fpath -match "x86-" -or $fpath -match "x86\." -or $fpath -match "mmx" -or $fpath -match "x86cpu") {
+		 ./perl.cmd "$unixpath" win32n -DDSO_WIN32 -DNDEBUG -DOPENSSL_THREADS -DOPENSSL_NO_STATIC_ENGINE -DOPENSSL_PIC -DOPENSSL_IA32_SSE2 -DOPENSSL_BN_ASM_MONT -DOPENSSL_BN_ASM_GF2m -DSHA1_ASM -DSHA256_ASM -DSHA512_ASM -DMD5_ASM -DRMD160_ASM -DAES_ASM -DVPAES_ASM -DWHIRLPOOL_ASM -DGHASH_ASM -DECP_NISTZ256_ASM -DPOLY1305_ASM -DOPENSSL_SYS_WIN32 -DWIN32_LEAN_AND_MEAN -DL_ENDIAN -D_CRT_SECURE_NO_DEPRECATE -DOPENSSL_BN_ASM_PART_WORDS >$destPath;
+	   } else {
+	     ./perl.cmd "$unixpath" nasm $destPath;
+	   }
 	 } else {
 	   Write-Output "Skip $destPath as already updated";
 	 }
@@ -17,8 +20,10 @@ Get-ChildItem -Path openssl/crypto -Filter "*.pl" -Recurse -ErrorAction Silently
 ForEach-Object {
    $fpath = %{$_.FullName}
    $noext=[io.path]::GetFileNameWithoutExtension($_);
-   $destPath = "crypto/$noext.asm";
-   Gen-Asm $fpath $destPath
+   if (-not (($noext -match "^x86$") -or ($noext -match "^bf-686$"))) { # ignore some scripts early
+     $destPath = "crypto/$noext.asm";
+     Gen-Asm $fpath $destPath
+   }
 }
 
 Gen-Asm "openssl\crypto\sha\asm\sha512-x86_64.pl" ".\crypto\sha256-x86_64.asm"
